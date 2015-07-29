@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Boiler circuit control</title>
+  <link rel="stylesheet" type="text/css" href="boiler.css" />
+  <script src="boiler.js"></script>
+</head>
+
+<body onload="javascript: connect()">
+<h1>Boiler circuit control</h1>
+<p id="status_msg"></p>
+<form id="relay" action="/relay" method="POST">
+<input id="relay_btn" type="button" value="Switch ON/OFF" onclick="javascript: switch_relay()" disabled />
+</form>
+</body>
+
+</html>
+
