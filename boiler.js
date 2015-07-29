@@ -1,5 +1,4 @@
-
-var socket = new WebSocket('ws://192.168.79.105/events');
+var socket = new WebSocket('ws://192.168.79.108/events');
 var relay_status = 0; /* off */
 
 function connect() {
@@ -7,8 +6,7 @@ function connect() {
 }
 
 socket.onopen = function () {
-    document.getElementById("status_msg").innerHTML = "<span class=\"info\">Connected to <pre>" + socket.url + ".</pre></span>";
-    document.getElementById("relay_btn").disabled = false;
+  document.getElementById("relay_btn").disabled = true;
     // Send authentication message
     this.send(
         JSON.stringify(
@@ -18,27 +16,30 @@ socket.onopen = function () {
             }
         )
     );
-
-    // Send request for Devices and URL Entry Points
-    setTimeout(
-        function () {
-            socket.send(
-                JSON.stringify(
-                    {
-                        URL: '/',
-                        Method: 'GET'
-                    }
-                )
-            );
-        },
-        100
-    );
 }
 
 socket.onmessage = function (event) {
+    var msg = JSON.parse(event.data);
     try {
-        // Print received messages in current document
-        document.write('<pre>'+JSON.stringify(JSON.parse(event.data), null, 4)+'</pre>');
+      // Print received messages in current document
+      if ( msg.EventURL == "/relay" ) {
+        relay_status = msg.EventData.Data.Relay;
+        if ( msg.EventData.Data.Relay == 0 )
+          document.getElementById("relay_btn").value = "Switch ON";
+        else
+          document.getElementById("relay_btn").value = "Switch OFF";
+      }
+      else
+      if ( msg.Status == "Authorization success" ) {
+        document.getElementById("status_msg").innerHTML = "<span class=\"info\">Connected to <pre>" + socket.url + ".</pre></span>";
+        document.getElementById("relay_btn").disabled = false;
+        get_relay();
+      }
+      else
+      {
+        document.getElementById("status_msg").innerHTML = "<span class=\"info\">Received: " + event.data + "</span>";
+        document.getElementById("relay_btn").disabled = true;
+      }
     } catch (e) {
         // Print errors in console
         console.log(e.message);
@@ -55,7 +56,7 @@ socket.onclose = function (event) {
     console.log(event.code+': '+(event.reason ? event.reason : 'WebSocket error'));
 };
 
-function get_relay(relay) {
+function get_relay() {
   setTimeout(
     function () {
       socket.send(
@@ -69,12 +70,10 @@ function get_relay(relay) {
     },
     100
   );
-
-  relay_status
 }
 
 function switch_relay(relay) {
-  document.getElementById("status_msg").innerHTML = "<span class=\"info\">Switching on/off.</span>";
+  var new_rel = relay_status > 0 ? 0 : 1;
   setTimeout(
     function () {
       socket.send(
@@ -83,7 +82,7 @@ function switch_relay(relay) {
             URL: '/relay',
             Method: 'POST',
             Data: {
-                Relay: 1
+                Relay: new_rel
             }
           }
         )
@@ -91,4 +90,5 @@ function switch_relay(relay) {
     },
     100
   );
+  get_relay();
 }
