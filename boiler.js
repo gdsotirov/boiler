@@ -1,4 +1,4 @@
-var socket = new WebSocket('ws://192.168.79.108/events');
+var socket = new WebSocket('ws://192.168.73.64/events');
 var relay_status = 0; /* off */
 
 function connect() {
